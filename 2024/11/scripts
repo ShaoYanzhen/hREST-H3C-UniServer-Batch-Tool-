@@ -1,1 +1,33 @@
-1
+#!/bin/bash
+
+# 设置变量
+def_url="192.168.1.2"
+user="admin"
+pw="Password@_"
+new_pw="Password@_@"
+new_gw="172.168.0.254"
+
+
+# 显示信息
+echo "计算服务器_RAID1"
+echo "这个型号服务器只有一个网关"
+
+# 使用hREST命令
+# 关闭lldp
+echo "正在尝试关闭lldp..."
+./hREST -H $def_url -U $user -P $pw setlldp -S Enable && \
+# 导入RAID配置
+echo "正在尝试导入RAID配置..."
+./hREST -H $def_url -U $user -P $pw uploadconfig -T RAID -F /root/js-config.json \
+# 关闭Monitor/Mwait
+echo "正在尝试关闭Monitor/Mwait..."
+./hREST -H $def_url -U $user -P $pw setbios -A EnableMonitorMWait -V Disabled && \
+# 服务器重启
+echo "正在尝试服务器重启..."
+./hREST -H $def_url -U $user -P $pw syspowerctrl -T ForceReset && \
+# 修改admin密码
+echo "正在尝试修改admin密码..."
+./hREST -H $def_url -U $user -P $pw setuser -P $new_pw && \
+# 设置HDM地址
+echo "正在尝试设置HDM地址..."
+./hREST -H $def_url -U $user -P $new_pw setipv4 -N eth1 -IP 172.168.0.$1 -T Static -G $new_gw -M 255.255.255.0
